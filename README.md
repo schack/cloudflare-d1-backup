@@ -7,7 +7,7 @@ Usage:
 
 ```
 docker run \
-  -e CLOUDFLARE_API_TOKEN="<Cloudflare API token with D1 permiossions>" \
+  -e CLOUDFLARE_API_TOKEN="<Cloudflare API token with D1 permissions>" \
   -e CLOUDFLARE_ACCOUNT_ID="<Cloudflare account Id>" \
   -e DATABASE_ID="<Database UUID>" \
   -e DATABASE_NAME="<database name>" \
