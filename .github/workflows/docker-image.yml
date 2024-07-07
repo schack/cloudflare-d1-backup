@@ -9,8 +9,7 @@ on:
 jobs:
 
   build:
-    permissions: write-all # important!
-
+  
     runs-on: ubuntu-latest
 
     steps:
@@ -36,4 +35,3 @@ jobs:
          docker push ghcr.io/schack/cloudflare-d1-backup:${{ steps.version.outputs.version }}
          docker tag ghcr.io/schack/cloudflare-d1-backup:${{ steps.version.outputs.version }} ghcr.io/schack/cloudflare-d1-backup:latest
          docker push ghcr.io/schack/cloudflare-d1-backup:latest
-
