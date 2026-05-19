@@ -18,7 +18,9 @@ jobs:
 
     - name: Extract Version
       id: version
-      run: echo "version=$(cat VERSION)" >> $GITHUB_OUTPUT
+      run: |
+        v=$(jq -r '.dependencies.wrangler' package.json | sed 's/^[\^~]//')
+        echo "version=$v" >> "$GITHUB_OUTPUT"
      
     - name: Login to ghcr.io
       uses: docker/login-action@v3
