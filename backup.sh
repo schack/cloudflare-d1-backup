@@ -20,6 +20,14 @@ database_name = "${DATABASE_NAME}"
 database_id = "${DATABASE_ID}"
 EOF
 
+# Optional TABLES env var (space-separated). When set, expands to
+# `--table X --table Y ...` so the export skips everything else — needed for
+# databases containing FTS5 virtual tables, which wrangler can't dump cleanly.
+TABLE_FLAGS=""
+for t in ${TABLES:-}; do
+  TABLE_FLAGS="$TABLE_FLAGS --table $t"
+done
+
 FILENAME="/tmp/backup/${FILE_PREFIX}-$(date +'%Y-%m-%d-%H-%M').sql"
-node_modules/wrangler/bin/wrangler.js -c /tmp/wrangler.toml d1 export --remote ${DATABASE_NAME} --output $FILENAME
+node_modules/wrangler/bin/wrangler.js -c /tmp/wrangler.toml d1 export --remote ${DATABASE_NAME} ${TABLE_FLAGS} --output $FILENAME
 gzip $FILENAME
