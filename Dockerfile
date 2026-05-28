@@ -1,11 +1,11 @@
 # Stage 1: Build
-FROM node:22-alpine AS build
+FROM node:lts-alpine AS build
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci --omit=dev
 
 # Stage 2: Production
-FROM node:22-alpine
+FROM node:lts-alpine
 WORKDIR /app
 COPY --from=build /app .
 COPY backup.sh backup.sh
