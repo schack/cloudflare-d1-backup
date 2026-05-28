@@ -2,7 +2,6 @@
 ### Simple backup tool for Cloudflare D1 databases.
 
 
-
 Usage:
 
 ```
