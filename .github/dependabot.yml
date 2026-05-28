@@ -14,6 +14,12 @@ updates:
       interval: weekly
     cooldown:
       default-days: 21
+    ignore:
+      # Node LTS only: skip odd majors (never LTS) and even majors
+      # that are still "Current". Update this list each October when
+      # a new even major goes Active LTS (next: Node 26 in Oct 2026).
+      - dependency-name: "node"
+        versions: ["23.x", "25.x", "26.x", "27.x"]
 
   - package-ecosystem: github-actions
     directory: /
