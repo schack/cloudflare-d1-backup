@@ -2,6 +2,6 @@
   "name": "cloudflare-d1-backup",
   "private": true,
   "dependencies": {
-    "wrangler": "4.92.0"
+    "wrangler": "4.95.0"
   }
 }
