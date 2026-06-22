@@ -12,7 +12,7 @@ Please report security issues privately — do **not** open a public issue.
 
 - Preferred: GitHub private vulnerability reporting via the **Security** tab →
   **Report a vulnerability** (https://github.com/schack/cloudflare-d1-backup/security/advisories/new).
-- Alternatively, email henrik.schack@storytel.com.
+- Alternatively, email henrik@schack.dk.
 
 Please include reproduction steps and affected version/digest. You can expect an
 acknowledgement within a few days. Once a fix is available, a new image is
