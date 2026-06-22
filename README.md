@@ -72,7 +72,28 @@ docker buildx imagetools inspect ghcr.io/schack/cloudflare-d1-backup:latest
 cosign download sbom ghcr.io/schack/cloudflare-d1-backup:latest
 ```
 
-For reproducible deployments, pin by digest rather than by tag.
+### Image tags and pinning
+
+| Tag | Mutability | Use it for |
+|---|---|---|
+| `latest` | rolling | always the newest build |
+| `<wrangler-version>` (e.g. `4.94.0`) | rolling | the newest build bundling that wrangler version — it keeps receiving base-image and dependency security rebuilds within the same version line |
+| `sha-<commit>` | immutable | a specific build |
+
+Each push to `main` builds and publishes an image. The `<wrangler-version>` tag
+matches the bundled wrangler release and **moves forward** as non-wrangler
+changes (base image, dependency, or workflow updates) are merged, so it is not a
+fixed point. A GitHub Release `v<wrangler-version>` is cut once, marking when
+that version line started.
+
+**For reproducible deployments, pin by digest** (or by an immutable
+`sha-<commit>` tag), not by `latest` or `<wrangler-version>`:
+
+```
+docker run ... ghcr.io/schack/cloudflare-d1-backup@sha256:<digest>
+```
+
+Resolve the current digest with `docker buildx imagetools inspect`.
 
 ### Security
 
