@@ -3,7 +3,6 @@ name: Docker Image CI
 on:
   push:
     branches: [ "main" ]
-    tags: [ "v*" ]
   pull_request:
   workflow_dispatch:
 
@@ -71,8 +70,6 @@ jobs:
             type=raw,value=latest,enable={{is_default_branch}}
             type=raw,value=${{ steps.version.outputs.version }},enable={{is_default_branch}}
             type=sha
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
 
       - name: Build and push
         id: build
@@ -107,8 +104,18 @@ jobs:
         with:
           sarif_file: trivy-results.sarif
 
+      # Auto-cut a GitHub Release per wrangler version: create v<version> only
+      # when that version has no release yet, so a wrangler bump releases while
+      # code-only changes just refresh the latest/sha tags.
       - name: Create GitHub Release
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: github.ref == 'refs/heads/main'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release create "${GITHUB_REF_NAME}" --generate-notes
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          tag="v${VERSION}"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            echo "Release $tag already exists; skipping."
+          else
+            gh release create "$tag" --target "$GITHUB_SHA" --generate-notes
+          fi

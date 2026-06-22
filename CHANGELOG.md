@@ -1,14 +1,17 @@
 # Changelog
 
 All notable changes to this project are documented here. The format is based on
-[Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
-adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+[Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Release versions track
+the bundled Cloudflare wrangler release (the image tag); each wrangler bump is
+auto-released as `v<wrangler-version>`. Changes to this tool's own code ship
+under the wrangler version current at the time and are noted here.
 
 ## [Unreleased]
 
-## [1.0.0] - 2026-06-22
+## [4.94.0] - 2026-06-22
 
-First versioned release, focused on supply-chain trustworthiness.
+First versioned release, focused on supply-chain trustworthiness (ships with
+wrangler 4.94.0).
 
 ### Added
 - Keyless cosign signatures on every published image (Sigstore + GitHub OIDC).
