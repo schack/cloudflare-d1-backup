@@ -8,6 +8,12 @@ under the wrangler version current at the time and are noted here.
 
 ## [Unreleased]
 
+### Changed
+- Serialize `main` builds via a workflow concurrency group so rapid successive
+  merges don't race for the rolling `latest` / `<wrangler-version>` tags.
+- Document the image tag model: `latest` and `<wrangler-version>` are rolling;
+  pin by digest or `sha-<commit>` for reproducible deployments.
+
 ## [4.94.0] - 2026-06-22
 
 First versioned release, focused on supply-chain trustworthiness (ships with

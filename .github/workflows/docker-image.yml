@@ -9,6 +9,13 @@ on:
 env:
   IMAGE: ghcr.io/schack/cloudflare-d1-backup
 
+# Serialize main builds so that when several PRs are merged in quick succession
+# the newest commit's build finishes last and cleanly owns the rolling `latest`
+# and `<wrangler-version>` tags. PR builds (lint only) cancel superseded runs.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 permissions: {}
 
 jobs:
