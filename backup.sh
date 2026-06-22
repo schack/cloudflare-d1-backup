@@ -2,13 +2,14 @@
 
 # Check all required environment vars are set.
 for var in CLOUDFLARE_API_TOKEN CLOUDFLARE_ACCOUNT_ID DATABASE_NAME DATABASE_ID; do
-   if [ -z "$(eval echo \$$var)" ]; then
-    echo "Error: $var is not set."
+  eval "value=\${$var:-}"
+  if [ -z "$value" ]; then
+    echo "Error: $var is not set." >&2
     exit 1
   fi
 done
 
-# Use default filename prefix if not set. 
+# Use default filename prefix if not set.
 : "${FILE_PREFIX:=d1-database}"
 
 # Create configuration for wrangler.
@@ -29,5 +30,7 @@ for t in ${TABLES:-}; do
 done
 
 FILENAME="/tmp/backup/${FILE_PREFIX}-$(date +'%Y-%m-%d-%H-%M').sql"
-node_modules/wrangler/bin/wrangler.js -c /tmp/wrangler.toml d1 export --remote ${DATABASE_NAME} ${TABLE_FLAGS} --output $FILENAME
-gzip $FILENAME
+# TABLE_FLAGS must word-split into separate --table arguments; keep it unquoted.
+# shellcheck disable=SC2086
+node_modules/wrangler/bin/wrangler.js -c /tmp/wrangler.toml d1 export --remote "${DATABASE_NAME}" ${TABLE_FLAGS} --output "$FILENAME"
+gzip "$FILENAME"
