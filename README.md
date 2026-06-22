@@ -1,4 +1,8 @@
 # cloudflare-d1-backup
+
+[![Docker Image CI](https://github.com/schack/cloudflare-d1-backup/actions/workflows/docker-image.yml/badge.svg)](https://github.com/schack/cloudflare-d1-backup/actions/workflows/docker-image.yml)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/schack/cloudflare-d1-backup/badge)](https://scorecard.dev/viewer/?uri=github.com/schack/cloudflare-d1-backup)
+
 ### Simple backup tool for Cloudflare D1 databases.
 
 
@@ -13,6 +17,13 @@ docker run --rm \
   -e FILE_PREFIX="<filename prefix for backup files>" \
   -v <path to backup file storage>:/tmp/backup \
   ghcr.io/schack/cloudflare-d1-backup
+```
+
+The container runs as the non-root `node` user (uid 1000), so the host
+directory mounted at `/tmp/backup` must be writable by uid 1000:
+
+```
+chown 1000:1000 <path to backup file storage>
 ```
 
 ### Environment variables
@@ -41,3 +52,28 @@ Virtual table indexes are derived data — they regenerate automatically when
 you re-apply your schema migrations and re-import the row data, so excluding
 them from the backup is safe.
 
+### Verifying the image
+
+Every published image is multi-arch (`linux/amd64` + `linux/arm64`), signed with
+Sigstore cosign (keyless), and ships SBOM + SLSA provenance attestations.
+
+Verify the signature (https://docs.sigstore.dev/cosign/verifying/verify/):
+
+```
+cosign verify ghcr.io/schack/cloudflare-d1-backup:latest \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+  --certificate-identity-regexp '^https://github.com/schack/cloudflare-d1-backup/\.github/workflows/docker-image\.yml@.*'
+```
+
+Inspect the attached attestations and platforms:
+
+```
+docker buildx imagetools inspect ghcr.io/schack/cloudflare-d1-backup:latest
+cosign download sbom ghcr.io/schack/cloudflare-d1-backup:latest
+```
+
+For reproducible deployments, pin by digest rather than by tag.
+
+### Security
+
+See SECURITY.md for the vulnerability disclosure policy.
