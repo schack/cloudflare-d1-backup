@@ -115,6 +115,7 @@ jobs:
       # when that version has no release yet, so a wrangler bump releases while
       # code-only changes just refresh the latest/sha tags.
       - name: Create GitHub Release
+        id: release
         if: github.ref == 'refs/heads/main'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -123,6 +124,42 @@ jobs:
           tag="v${VERSION}"
           if gh release view "$tag" >/dev/null 2>&1; then
             echo "Release $tag already exists; skipping."
+            echo "created=false" >> "$GITHUB_OUTPUT"
           else
             gh release create "$tag" --target "$GITHUB_SHA" --generate-notes
+            echo "created=true" >> "$GITHUB_OUTPUT"
+            echo "tag=$tag" >> "$GITHUB_OUTPUT"
           fi
+
+      # Signed release assets (only when a new version was just released). The
+      # image is already cosign-signed in GHCR; these release-level assets are
+      # what Scorecard's Signed-Releases check inspects, and they give each
+      # release a signed, immutable pointer to the exact image digest.
+      - name: Generate SBOM (SPDX) from the released image
+        if: steps.release.outputs.created == 'true'
+        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0.24.0
+        with:
+          image: ${{ env.IMAGE }}@${{ steps.build.outputs.digest }}
+          format: spdx-json
+          output-file: sbom.spdx.json
+          upload-release-assets: false
+
+      - name: Sign and attach release artifacts
+        if: steps.release.outputs.created == 'true'
+        env:
+          IMAGE: ${{ env.IMAGE }}
+          DIGEST: ${{ steps.build.outputs.digest }}
+          TAG: ${{ steps.release.outputs.tag }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          # Record exactly which immutable image this release refers to.
+          echo "${IMAGE}@${DIGEST}" > image-digest.txt
+          # Checksums over the file assets, then keyless-sign them. cosign v3
+          # writes a Sigstore bundle via --bundle; the .sigstore.json suffix is
+          # one Scorecard recognises as a signed release asset.
+          sha256sum sbom.spdx.json image-digest.txt > checksums.txt
+          cosign sign-blob --yes --bundle checksums.txt.sigstore.json checksums.txt
+          gh release upload "$TAG" \
+            sbom.spdx.json image-digest.txt checksums.txt checksums.txt.sigstore.json \
+            --repo "$GITHUB_REPOSITORY" --clobber
