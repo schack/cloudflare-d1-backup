@@ -95,6 +95,25 @@ docker run ... ghcr.io/schack/cloudflare-d1-backup@sha256:<digest>
 
 Resolve the current digest with `docker buildx imagetools inspect`.
 
+### Image size (why some wrangler binaries are stubbed)
+
+`wrangler` hard-depends on several large native binaries that only matter for
+local development (`wrangler dev` / `deploy`): the `workerd` Workers runtime
+(~120 MB), the `esbuild` bundler (~10 MB), and `libvips` for `sharp` image
+processing (~15 MB). A remote export (`d1 export --remote`) is pure Cloudflare
+REST API traffic and never spawns any of them.
+
+wrangler resolves these binaries' *paths* at startup but only *executes* them
+for local emulation/bundling, so the Dockerfile build stage truncates the files
+to 0 bytes (it does **not** delete them — `require.resolve` must still find
+them). This cuts the image roughly in half (~500 MB → ~290 MB) with no effect on
+the backup.
+
+If a future wrangler version starts needing one of these on the export path, the
+export will fail loudly with a clear "could not be found" error — so don't
+"fix" a broken export by removing the prune step in the Dockerfile without first
+checking whether wrangler's export code path changed.
+
 ### Security
 
 See SECURITY.md for the vulnerability disclosure policy.
