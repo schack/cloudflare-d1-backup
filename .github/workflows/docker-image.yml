@@ -102,6 +102,8 @@ jobs:
           format: sarif
           output: trivy-results.sarif
           severity: HIGH,CRITICAL
+          # Skips the base image's bundled npm CLI (not runtime-reachable). See trivy.yaml.
+          trivy-config: trivy.yaml
           # Report-only: never fail the build on findings (base-image CVEs are
           # often out of our control). Results surface in the Security tab.
           exit-code: '0'
