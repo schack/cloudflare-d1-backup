@@ -1,0 +1,19 @@
+# Trivy configuration for the image scan in .github/workflows/docker-image.yml.
+#
+# We skip the npm CLI that ships baked into the node:24-alpine base image. The
+# container runs `sh backup.sh` -> wrangler -> Cloudflare REST API and never
+# invokes npm at runtime, so CVEs in npm's bundled dependencies (sigstore, tar,
+# undici, ip-address, brace-expansion, ...) are not reachable. They also can't
+# be fixed from this repo: they track whatever npm the base image bundles, so
+# they'd sit "open" forever and bury genuinely actionable findings.
+#
+# Scoped by PATH (not by CVE id) on purpose: new npm-CLI CVEs land regularly,
+# and an id list would need constant hand-maintenance. The base image itself
+# still moves forward on the 21-day Dependabot cooldown (.github/dependabot.yml).
+#
+# NOTE: this only skips npm's *own* bundled tree under /usr/local. The app's
+# real dependencies under /app/node_modules (wrangler + undici/ws/esbuild) are
+# still scanned, so a genuinely reachable CVE will still surface.
+scan:
+  skip-dirs:
+    - usr/local/lib/node_modules/npm
