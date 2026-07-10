@@ -15,11 +15,14 @@ updates:
     cooldown:
       default-days: 21
     ignore:
-      # Node LTS only: skip odd majors (never LTS) and even majors
-      # that are still "Current". Update this list each October when
-      # a new even major goes Active LTS (next: Node 26 in Oct 2026).
+      # Node LTS only: never auto-bump the major. Dependabot still offers
+      # 24.x minor/patch (-alpine) updates; bump the major by hand each
+      # October when the next even major goes Active LTS (Node 26, Oct 2026).
+      # NOTE: a `versions: ["25.x", ...]` list does NOT work here - the
+      # `-alpine` tag suffix stops the .x semver wildcard from matching, so
+      # Dependabot opened a 25-alpine PR anyway. update-types is reliable.
       - dependency-name: "node"
-        versions: ["23.x", "25.x", "26.x", "27.x"]
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: github-actions
     directory: /
