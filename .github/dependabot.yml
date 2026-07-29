@@ -30,4 +30,16 @@ updates:
       interval: weekly
     cooldown:
       default-days: 21
-      
+    # One PR per week for all action minor/patch bumps. Each merge to main
+    # triggers a full multi-arch build + push + cosign + Trivy, and
+    # cancel-in-progress is false on main, so N separate PRs = N queued
+    # builds. Majors are deliberately left out of the group so they still
+    # arrive as individual PRs and get reviewed one at a time.
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
+
