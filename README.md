@@ -26,6 +26,30 @@ directory mounted at `/tmp/backup` must be writable by uid 1000:
 chown 1000:1000 <path to backup file storage>
 ```
 
+The entrypoint verifies this before starting the export and exits immediately
+if the mount is missing or unwritable. The export makes the database
+unavailable to serve queries while it runs, so failing up front is deliberate.
+
+#### Keeping the host directory's existing owner
+
+Chowning to uid 1000 is not always wanted. Synology DSM, for example, assigns
+user uids from 1024 upwards, so uid 1000 matches no account and the folder
+shows up with an unknown owner in File Station. Run the container as the
+directory's current owner instead:
+
+```
+docker run ... \
+  --user "$(stat -c '%u:%g' <path to backup file storage>)" \
+  -e HOME=/tmp \
+  ...
+```
+
+Overriding `HOME` is required, not optional. Docker resolves `HOME` from
+`/etc/passwd`, so a uid with no entry in the image falls back to `/`, which is
+not writable. wrangler writes its logs to `$HOME/.config/.wrangler/logs` and
+would fail there even once the backup directory itself is writable. The
+container's `/tmp` is mode 1777 and works for any uid.
+
 ### Environment variables
 
 | Variable | Required | Description |
@@ -94,6 +118,12 @@ docker run ... ghcr.io/schack/cloudflare-d1-backup@sha256:<digest>
 ```
 
 Resolve the current digest with `docker buildx imagetools inspect`.
+
+If you do track a moving tag, remember that `docker run` reuses a locally
+cached image and will not re-pull one on its own. A host can sit on a
+months-old image and then take every accumulated change at once the first time
+it pulls, which makes whatever moved last look like the cause. Add
+`--pull always`, or pull on a schedule, so changes arrive one at a time.
 
 ### Security
 
