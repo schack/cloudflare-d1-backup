@@ -9,6 +9,23 @@ for var in CLOUDFLARE_API_TOKEN CLOUDFLARE_ACCOUNT_ID DATABASE_NAME DATABASE_ID;
   fi
 done
 
+# Fail fast if the backup volume is missing or not writable. wrangler runs the
+# whole remote export before it writes anything locally, and D1 is unavailable
+# to serve queries for the duration, so an unwritable mount would otherwise
+# cost a full export and an outage window before dying on the download.
+if [ ! -d /tmp/backup ]; then
+  echo "Error: /tmp/backup does not exist. Mount a host directory there:" >&2
+  echo "  -v <path to backup file storage>:/tmp/backup" >&2
+  exit 1
+fi
+
+if [ ! -w /tmp/backup ]; then
+  echo "Error: /tmp/backup is not writable by uid $(id -u), gid $(id -g)." >&2
+  echo "Either chown the host directory to uid 1000, or run the container as" >&2
+  echo "its current owner: --user <uid>:<gid> -e HOME=/tmp (see README.md)." >&2
+  exit 1
+fi
+
 # Use default filename prefix if not set.
 : "${FILE_PREFIX:=d1-database}"
 
