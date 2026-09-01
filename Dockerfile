@@ -9,7 +9,8 @@ FROM node:24-alpine@sha256:e67514e5d0f6c46656005e1b693b2ec9d52e80b641307de684d4a
 WORKDIR /app
 COPY --from=build /app .
 COPY backup.sh backup.sh
-# Run unprivileged. The node image ships uid/gid 1000 (node); the backup only
-# writes to /tmp, so the mounted /tmp/backup volume must be writable by uid 1000.
-USER node
+# Run unprivileged as the node image's uid/gid 1000 (node), numeric so the host
+# can resolve it. The backup only writes to /tmp, so the mounted /tmp/backup
+# volume must be writable by uid 1000.
+USER 1000:1000
 CMD ["sh", "backup.sh"]
